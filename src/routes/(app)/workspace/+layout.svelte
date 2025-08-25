@@ -141,6 +141,16 @@
 						>
 							{$i18n.t('Analysis')}
 						</a>
+
+						<!-- System (always visible for now) -->
+						<a
+							class="min-w-fit p-1.5 {$page.url.pathname.includes('/workspace/system')
+								? ''
+								: 'text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'} transition"
+							href="/workspace/system"
+						>
+							{$i18n.t('System')}
+						</a>
 					</div>
 				</div>
 

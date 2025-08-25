@@ -14,6 +14,10 @@
 
   let res: any = null;
   let loading = false;
+  let showRaw = false;
+
+  const getSummary = () => (res?.analysis_result?.summary || res?.parsed_data?.summary || '');
+  const getAnomalies = () => (res?.analysis_result?.anomalies || res?.parsed_data?.anomalies || []);
 
   const submit = async () => {
     if (!form.logType || !form.vendor || !form.logContent?.trim()) {
@@ -79,37 +83,74 @@
     </div>
 
     <div class="border dark:border-gray-800 rounded-xl p-3">
-      <div class="font-medium mb-2">{$i18n.t('Result')}</div>
+      <div class="flex items-center justify-between mb-2">
+        <div class="font-medium">{$i18n.t('Result')}</div>
+        {#if res}
+          <button class="px-2 py-0.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs" on:click={() => (showRaw = !showRaw)}>
+            {showRaw ? $i18n.t('Structured') : $i18n.t('Raw JSON')}
+          </button>
+        {/if}
+      </div>
       {#if res}
-        <div class="text-xs text-gray-500 mb-1">{$i18n.t('Severity')}: {res.severity}</div>
-        <div class="text-[13px] whitespace-pre-wrap break-words bg-gray-50 dark:bg-gray-900 p-2 rounded-lg">{JSON.stringify(res.analysis_result || res.parsed_data, null, 2)}</div>
-        <div class="mt-2">
-          <div class="text-sm font-medium mb-1">{$i18n.t('Recommendations')}</div>
-          {#if res.recommendations?.length}
-            <ul class="list-disc ml-5 text-[13px]">
-              {#each res.recommendations as r}
-                <li>{r}</li>
-              {/each}
-            </ul>
-          {:else}
-            <div class="text-xs text-gray-500">{$i18n.t('No recommendations')}</div>
-          {/if}
-        </div>
-        <div class="mt-2">
-          <div class="text-sm font-medium mb-1">{$i18n.t('Related Knowledge')}</div>
-          {#if res.related_knowledge?.length}
-            <div class="space-y-2">
-              {#each res.related_knowledge as k}
-                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-900">
-                  <div class="text-xs text-gray-500">score: {k.score?.toFixed ? k.score.toFixed(3) : k.score}</div>
-                  <div class="text-[13px] whitespace-pre-wrap break-words">{k.content}</div>
-                </div>
-              {/each}
+        <div class="text-xs text-gray-500 mb-2">{$i18n.t('Severity')}: {res.severity}</div>
+        {#if showRaw}
+          <pre class="text-[12px] bg-gray-50 dark:bg-gray-900 p-2 rounded-lg overflow-auto max-h-96"><code>{JSON.stringify(res.analysis_result || res.parsed_data, null, 2)}</code></pre>
+        {:else}
+          <!-- Summary -->
+          {#if getSummary()}
+            <div class="mb-3">
+              <div class="text-sm font-medium mb-1">{$i18n.t('Summary')}</div>
+              <div class="text-[13px] whitespace-pre-wrap break-words bg-gray-50 dark:bg-gray-900 p-2 rounded-lg">{getSummary()}</div>
             </div>
-          {:else}
-            <div class="text-xs text-gray-500">{$i18n.t('No results')}</div>
           {/if}
-        </div>
+          <!-- Anomalies -->
+          <div class="mb-3">
+            <div class="text-sm font-medium mb-1">{$i18n.t('Anomalies')}</div>
+            {#if getAnomalies()?.length}
+              <div class="space-y-2">
+                {#each getAnomalies() as a}
+                  <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-900">
+                    <div class="text-xs text-gray-500">{a.type} • {a.severity} {a.lineNumber ? `• line ${a.lineNumber}` : ''}</div>
+                    {#if a.evidence?.length}
+                      <pre class="text-[12px] mt-1 overflow-auto"><code>{a.evidence.join('\n')}</code></pre>
+                    {/if}
+                  </div>
+                {/each}
+              </div>
+            {:else}
+              <div class="text-xs text-gray-500">{$i18n.t('No anomalies')}</div>
+            {/if}
+          </div>
+          <!-- Recommendations -->
+          <div class="mb-3">
+            <div class="text-sm font-medium mb-1">{$i18n.t('Recommendations')}</div>
+            {#if res.recommendations?.length}
+              <ul class="list-disc ml-5 text-[13px]">
+                {#each res.recommendations as r}
+                  <li>{r}</li>
+                {/each}
+              </ul>
+            {:else}
+              <div class="text-xs text-gray-500">{$i18n.t('No recommendations')}</div>
+            {/if}
+          </div>
+          <!-- Related Knowledge -->
+          <div class="mb-1">
+            <div class="text-sm font-medium mb-1">{$i18n.t('Related Knowledge')}</div>
+            {#if res.related_knowledge?.length}
+              <div class="space-y-2">
+                {#each res.related_knowledge as k}
+                  <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-900">
+                    <div class="text-xs text-gray-500">{$i18n.t('Score')}: {k.score?.toFixed ? k.score.toFixed(3) : k.score}</div>
+                    <div class="text-[13px] whitespace-pre-wrap break-words">{k.content}</div>
+                  </div>
+                {/each}
+              </div>
+            {:else}
+              <div class="text-xs text-gray-500">{$i18n.t('No results')}</div>
+            {/if}
+          </div>
+        {/if}
       {:else}
         <div class="text-xs text-gray-500">{$i18n.t('No result')}</div>
       {/if}

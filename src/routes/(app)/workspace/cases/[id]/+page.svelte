@@ -16,7 +16,9 @@
     getNodeCommands,
     createInteraction,
     saveCaseLayout,
-    getCaseLayout
+    getCaseLayout,
+    getCaseFeedback,
+    upsertCaseFeedback
   } from '$lib/apis/cases';
   import type { CaseWithGraph, CaseNode, CaseEdge } from '$lib/types/cases';
 
@@ -39,6 +41,17 @@
   let commandsRes: any = null;
   let listTasksRes: any = null;
   let layoutRes: any = null;
+  // Feedback state
+  let feedbackLoading = false;
+  let feedbackExisting: any = null;
+  let feedback = {
+    outcome: 'solved',
+    rating: 5,
+    comment: '',
+    corrected_solution: '',
+    knowledge_contribution: '{"tags": []}',
+    additional_context: '{}'
+  };
 
   // Interaction form
   let interaction = {
@@ -57,6 +70,7 @@
       stats = await getCaseStats(localStorage.token, caseId);
       statusInfo = await getCaseStatus(localStorage.token, caseId);
       if (!selectedNodeId && nodes.length > 0) selectedNodeId = nodes[0].id;
+      await loadFeedback();
     } catch (e) {
       toast.error(`${e}`);
     }
@@ -176,6 +190,77 @@
   onMount(async () => {
     await load();
   });
+
+  // ---------- Helpers: content rendering ----------
+  const tryParseJSON = (s: string) => {
+    try {
+      const obj = JSON.parse(s);
+      return obj;
+    } catch {
+      return null;
+    }
+  };
+  let showFormatted = true;
+  $: parsedContent = selectedNode ? tryParseJSON(selectedNode.content || '') : null;
+
+  // ---------- Feedback ----------
+  const loadFeedback = async () => {
+    feedbackLoading = true;
+    feedbackExisting = null;
+    try {
+      const res = await getCaseFeedback(localStorage.token, caseId);
+      feedbackExisting = res;
+      const data = (res && res.data) || {};
+      feedback.outcome = data.outcome || 'solved';
+      feedback.rating = data.rating ?? 5;
+      feedback.comment = data.comment || '';
+      feedback.corrected_solution = data.corrected_solution || '';
+      feedback.knowledge_contribution = JSON.stringify(data.knowledge_contribution ?? { tags: [] }, null, 2);
+      feedback.additional_context = JSON.stringify(data.additional_context ?? {}, null, 2);
+    } catch (e) {
+      // 404 等视为无反馈
+      feedbackExisting = null;
+    }
+    feedbackLoading = false;
+  };
+
+  const submitFeedback = async () => {
+    try {
+      if (!feedback.outcome) {
+        toast.error($i18n.t('Please select outcome'));
+        return;
+      }
+      const payload: any = {
+        outcome: feedback.outcome,
+        rating: feedback.rating ? Number(feedback.rating) : undefined,
+        comment: feedback.comment || undefined,
+        corrected_solution: feedback.corrected_solution || undefined,
+        knowledge_contribution: undefined,
+        additional_context: undefined
+      };
+      if (feedback.knowledge_contribution?.trim()) {
+        try {
+          payload.knowledge_contribution = JSON.parse(feedback.knowledge_contribution);
+        } catch (err) {
+          toast.error($i18n.t('Invalid JSON in Knowledge Contribution'));
+          return;
+        }
+      }
+      if (feedback.additional_context?.trim()) {
+        try {
+          payload.additional_context = JSON.parse(feedback.additional_context);
+        } catch (err) {
+          toast.error($i18n.t('Invalid JSON in Additional Context'));
+          return;
+        }
+      }
+      await upsertCaseFeedback(localStorage.token, caseId, payload);
+      toast.success($i18n.t('Feedback saved'));
+      await loadFeedback();
+    } catch (e) {
+      toast.error(`${e}`);
+    }
+  };
 </script>
 
 <div class="max-w-6xl mx-auto py-3">
@@ -245,7 +330,17 @@
         <div class="font-medium mb-2">{$i18n.t('Selected Node')}</div>
         {#if selectedNode}
           <div class="text-xs text-gray-500 mb-1">{selectedNode.node_type} • {selectedNode.status}</div>
-          <div class="text-[13px] whitespace-pre-wrap break-words bg-gray-50 dark:bg-gray-900 p-2 rounded-lg" title="node-content">{selectedNode.content}</div>
+          <div class="mb-2 flex items-center gap-2">
+            <label class="text-xs text-gray-500">{$i18n.t('Display')}</label>
+            <button class="px-2 py-0.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs" on:click={() => (showFormatted = !showFormatted)}>
+              {showFormatted ? $i18n.t('Formatted') : $i18n.t('Raw')}
+            </button>
+          </div>
+          {#if showFormatted && parsedContent}
+            <pre class="text-[12px] bg-gray-50 dark:bg-gray-900 p-2 rounded-lg overflow-auto max-h-80"><code>{JSON.stringify(parsedContent, null, 2)}</code></pre>
+          {:else}
+            <div class="text-[13px] whitespace-pre-wrap break-words bg-gray-50 dark:bg-gray-900 p-2 rounded-lg overflow-auto max-h-80" title="node-content">{selectedNode.content}</div>
+          {/if}
           <div class="mt-2 flex gap-2">
             <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={doRegenerate}>{$i18n.t('Regenerate')}</button>
             <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={doListTasks}>{$i18n.t('List Tasks')}</button>
@@ -274,7 +369,7 @@
                 <div class="space-y-2">
                   {#each knowledge.sources as s}
                     <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-900">
-                      <div class="text-xs text-gray-500">score: {s.score?.toFixed ? s.score.toFixed(3) : s.score}</div>
+                      <div class="text-xs text-gray-500">{$i18n.t('Score')}: {s.score?.toFixed ? s.score.toFixed(3) : s.score}</div>
                       <div class="text-[13px] whitespace-pre-wrap break-words">{s.content}</div>
                     </div>
                   {/each}
@@ -292,9 +387,7 @@
               {#if commandsRes.commands?.length}
                 <div class="space-y-2">
                   {#each commandsRes.commands as c}
-                    <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-900">
-                      <div class="text-[13px] whitespace-pre-wrap break-words">{Array.isArray(c) ? c.join('\n') : JSON.stringify(c)}</div>
-                    </div>
+                    <pre class="p-2 rounded-lg bg-gray-50 dark:bg-gray-900 text-[12px] overflow-auto"><code>{Array.isArray(c) ? c.join('\n') : JSON.stringify(c, null, 2)}</code></pre>
                   {/each}
                 </div>
               {:else}
@@ -335,6 +428,53 @@
         <div class="mt-2">
           <button class="px-3 py-1.5 rounded-lg bg-black text-white dark:bg-white dark:text-black" on:click={submitInteraction}>{$i18n.t('Create')}</button>
         </div>
+      </div>
+
+      <!-- Feedback Section -->
+      <div class="border dark:border-gray-800 rounded-xl p-3">
+        <div class="font-medium mb-2">{$i18n.t('Case Feedback')}</div>
+        {#if feedbackLoading}
+          <div class="text-xs text-gray-500">{$i18n.t('Loading...')}</div>
+        {:else}
+          {#if feedbackExisting}
+            <div class="text-[12px] text-gray-500 mb-2">{$i18n.t('Existing feedback loaded')}</div>
+          {:else}
+            <div class="text-[12px] text-gray-500 mb-2">{$i18n.t('No feedback yet')}</div>
+          {/if}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-gray-500">{$i18n.t('Outcome')}</label>
+              <select class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-900" bind:value={feedback.outcome}>
+                <option value="solved">{$i18n.t('Solved')}</option>
+                <option value="partially_solved">{$i18n.t('Partially Solved')}</option>
+                <option value="unsolved">{$i18n.t('Unsolved')}</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">{$i18n.t('Rating')}</label>
+              <input type="number" min="1" max="5" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-900" bind:value={feedback.rating} />
+            </div>
+          </div>
+          <div class="mt-2">
+            <label class="text-xs text-gray-500">{$i18n.t('Comment')}</label>
+            <input class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-900" bind:value={feedback.comment} />
+          </div>
+          <div class="mt-2">
+            <label class="text-xs text-gray-500">{$i18n.t('Corrected Solution')}</label>
+            <textarea class="w-full h-20 p-2 rounded-lg bg-gray-100 dark:bg-gray-900" bind:value={feedback.corrected_solution} />
+          </div>
+          <div class="mt-2">
+            <label class="text-xs text-gray-500">{$i18n.t('Knowledge Contribution (JSON)')}</label>
+            <textarea class="w-full h-24 p-2 rounded-lg bg-gray-100 dark:bg-gray-900" bind:value={feedback.knowledge_contribution} />
+          </div>
+          <div class="mt-2">
+            <label class="text-xs text-gray-500">{$i18n.t('Additional Context (JSON)')}</label>
+            <textarea class="w-full h-24 p-2 rounded-lg bg-gray-100 dark:bg-gray-900" bind:value={feedback.additional_context} />
+          </div>
+          <div class="mt-2">
+            <button class="px-3 py-1.5 rounded-lg bg-black text-white dark:bg-white dark:text-black" on:click={submitFeedback}>{$i18n.t('Save')}</button>
+          </div>
+        {/if}
       </div>
     </div>
   </div>
