@@ -1,35 +1,38 @@
-### Installing Both Ollama and Open WebUI Using Kustomize
 
-For cpu-only pod
+# 安装说明
+
+## 使用 Kustomize 安装 Ollama 与 Open WebUI
+
+适用于仅 CPU 的 Pod：
 
 ```bash
 kubectl apply -f ./kubernetes/manifest/base
 ```
 
-For gpu-enabled pod
+适用于启用 GPU 的 Pod：
 
 ```bash
 kubectl apply -k ./kubernetes/manifest
 ```
 
-### Installing Both Ollama and Open WebUI Using Helm
+## 使用 Helm 安装 Ollama 与 Open WebUI
 
-Package Helm file first
+先打包 Helm chart：
 
 ```bash
 helm package ./kubernetes/helm/
 ```
 
-For cpu-only pod
+适用于仅 CPU 的 Pod：
 
 ```bash
 helm install ollama-webui ./ollama-webui-*.tgz
 ```
 
-For gpu-enabled pod
+适用于启用 GPU 的 Pod：
 
 ```bash
 helm install ollama-webui ./ollama-webui-*.tgz --set ollama.resources.limits.nvidia.com/gpu="1"
 ```
 
-Check the `kubernetes/helm/values.yaml` file to know which parameters are available for customization
+查看 `kubernetes/helm/values.yaml` 文件以了解可自定义的参数

@@ -1,27 +1,6 @@
 # Open WebUI 👋
 
-![GitHub stars](https://img.shields.io/github/stars/open-webui/open-webui?style=social)
-![GitHub forks](https://img.shields.io/github/forks/open-webui/open-webui?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/open-webui/open-webui?style=social)
-![GitHub repo size](https://img.shields.io/github/repo-size/open-webui/open-webui)
-![GitHub language count](https://img.shields.io/github/languages/count/open-webui/open-webui)
-![GitHub top language](https://img.shields.io/github/languages/top/open-webui/open-webui)
-![GitHub last commit](https://img.shields.io/github/last-commit/open-webui/open-webui?color=red)
-[![Discord](https://img.shields.io/badge/Discord-Open_WebUI-blue?logo=discord&logoColor=white)](https://discord.gg/5rJgQTnV4s)
-[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/tjbck)
-
 **Open WebUI 是一款[可扩展](https://docs.openwebui.com/features/plugin/)、功能丰富且用户友好的自托管 AI 平台，设计即支持完全离线运行。** 它支持多种大语言模型运行时，如 **Ollama** 与 **兼容 OpenAI 的 API**，并内置用于 RAG 的推理引擎，是一套**强大的 AI 部署解决方案**。
-
-热爱开源 AI？[加入我们的团队 →](https://careers.openwebui.com/)
-
-![Open WebUI Demo](./demo.gif)
-
-> [!TIP]  
-> **在找[企业版方案](https://docs.openwebui.com/enterprise)？** – **[联系销售团队](mailto:sales@openwebui.com)**
->
-> 获取更**强大的能力**，包括**自定义主题与品牌**、**SLA 服务支持**、**长期支持（LTS）版本**等！
-
-更多信息请查阅我们的[Open WebUI 文档](https://docs.openwebui.com/)。
 
 ## Open WebUI 关键特性 ⭐
 
@@ -65,47 +44,6 @@
 
 想进一步了解功能？请查看[功能总览文档](https://docs.openwebui.com/features)！
 
-## 赞助商 🙌
-
-#### Emerald
-
-<table>
-  <!-- <tr>
-    <td>
-      <a href="https://n8n.io/" target="_blank">
-        <img src="https://docs.openwebui.com/sponsors/logos/n8n.png" alt="n8n" style="width: 8rem; height: 8rem; border-radius: .75rem;" />
-      </a>
-    </td>
-    <td>
-      <a href="https://n8n.io/">n8n</a> • Does your interface have a backend yet?<br>Try <a href="https://n8n.io/">n8n</a>
-    </td>
-  </tr> -->
-  <tr>
-    <td>
-      <a href="https://tailscale.com/blog/self-host-a-local-ai-stack/?utm_source=OpenWebUI&utm_medium=paid-ad-placement&utm_campaign=OpenWebUI-Docs" target="_blank">
-        <img src="https://docs.openwebui.com/sponsors/logos/tailscale.png" alt="Tailscale" style="width: 8rem; height: 8rem; border-radius: .75rem;" />
-      </a>
-    </td>
-    <td>
-      <a href="https://tailscale.com/blog/self-host-a-local-ai-stack/?utm_source=OpenWebUI&utm_medium=paid-ad-placement&utm_campaign=OpenWebUI-Docs">Tailscale</a> • Connect self-hosted AI to any device with Tailscale
-    </td>
-  </tr>
-   <tr>
-    <td>
-      <a href="https://warp.dev/open-webui" target="_blank">
-        <img src="https://docs.openwebui.com/sponsors/logos/warp.png" alt="Warp" style="width: 8rem; height: 8rem; border-radius: .75rem;" />
-      </a>
-    </td>
-    <td>
-      <a href="https://warp.dev/open-webui">Warp</a> • The intelligent terminal for developers
-    </td>
-  </tr>
-</table>
-
----
-
-我们对赞助商的慷慨支持深表感谢。他们的贡献帮助我们持续维护与改进项目，从而为社区源源不断地提供高质量的成果。谢谢！
-
 ## 如何安装 🚀
 
 ### 通过 Python pip 安装 🐍
@@ -138,13 +76,6 @@ Open WebUI 可通过 pip（Python 包管理器）安装。开始之前，请确�
 
 遇到连接问题？请查看我们的[故障排查文档](https://docs.openwebui.com/troubleshooting/)。若需进一步帮助，也欢迎加入[Open WebUI Discord](https://discord.gg/5rJgQTnV4s) 与社区交流。
 
-### 使用 Dev 分支 🌙
-
-> [!WARNING]
-> `:dev` 分支包含最新但可能不稳定的特性与变更。请自行承担风险，可能存在缺陷或功能未完成的情况。
-
-如果你想抢先体验前沿特性，并能接受偶发的不稳定性，可以使用 `:dev` 标签。
-
 ### 离线模式
 
 如果你在离线环境运行 Open WebUI，可设置环境变量 `HF_HUB_OFFLINE=1`，避免从网络下载模型：
@@ -152,30 +83,8 @@ Open WebUI 可通过 pip（Python 包管理器）安装。开始之前，请确�
 ```bash
 export HF_HUB_OFFLINE=1
 ```
-
 ## 接下来？🌟
 
 在[路线图](https://docs.openwebui.com/roadmap/)中查看即将到来的功能。
 
-## 许可证 📜
-
-本项目使用 [Open WebUI License](LICENSE)（修订版 BSD-3-Clause）授权。你将拥有与经典 BSD-3 许可几乎相同的权利：可以在极少限制下使用、修改与分发软件（包括用于闭源与商业产品）。唯一的额外要求是按 LICENSE 中的说明保留 “Open WebUI” 品牌标识。完整条款请参阅 [LICENSE](LICENSE)。📄
-
-## 支持 💬
-
-如果你有任何问题、建议或需要帮助，欢迎创建 Issue，或加入我们的
-[Open WebUI Discord 社区](https://discord.gg/5rJgQTnV4s) 与我们交流！🤝
-
-## Star 历史
-
-<a href="https://star-history.com/#open-webui/open-webui&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=open-webui/open-webui&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=open-webui/open-webui&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=open-webui/open-webui&type=Date" />
-  </picture>
-</a>
-
----
-
-由 [Timothy Jaeryang Baek](https://github.com/tjbck) 创建——让我们一起把 Open WebUI 做得更好！💪
+```
