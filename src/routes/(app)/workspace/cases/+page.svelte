@@ -45,9 +45,9 @@
         category: form.category || undefined
       });
       toast.success($i18n.t('Case created'));
-      // Navigate to details (use caseId from response)
-      if (res?.caseId) {
-        goto(`/workspace/cases/${res.caseId}`);
+      // Navigate to details (use snake_case id from response)
+      if (res?.id) {
+        goto(`/workspace/cases/${res.id}`);
         return;
       }
       await load();

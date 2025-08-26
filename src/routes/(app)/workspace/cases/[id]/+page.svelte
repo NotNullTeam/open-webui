@@ -306,8 +306,8 @@
       <div class="border dark:border-gray-800 rounded-xl p-3">
         <div class="font-medium mb-2">{$i18n.t('Case Stats')}</div>
         {#if stats}
-          <div class="text-xs text-gray-600">{$i18n.t('Nodes')}: {stats.nodeCount} • {$i18n.t('Edges')}: {stats.edgeCount}</div>
-          <div class="text-[11px] text-gray-500 mt-1">{JSON.stringify(stats.nodeTypeDistribution)}</div>
+          <div class="text-xs text-gray-600">{$i18n.t('Nodes')}: {stats.node_count} • {$i18n.t('Edges')}: {stats.edge_count}</div>
+          <div class="text-[11px] text-gray-500 mt-1">{JSON.stringify(stats.node_type_distribution)}</div>
         {:else}
           <div class="text-xs text-gray-500">{$i18n.t('No data')}</div>
         {/if}
