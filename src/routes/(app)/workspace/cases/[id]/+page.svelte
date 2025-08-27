@@ -13,6 +13,7 @@
     listNodeTasks,
     stopNodeTasks,
     getNodeKnowledge,
+    getNodeKnowledgeHybrid,
     getNodeCommands,
     createInteraction,
     saveCaseLayout,
@@ -41,6 +42,8 @@
   let commandsRes: any = null;
   let listTasksRes: any = null;
   let layoutRes: any = null;
+  // Knowledge retrieval mode: 'vector' | 'hybrid'
+  let knowledgeMode: 'vector' | 'hybrid' = 'vector';
   // Feedback state
   let feedbackLoading = false;
   let feedbackExisting: any = null;
@@ -71,6 +74,11 @@
       statusInfo = await getCaseStatus(localStorage.token, caseId);
       if (!selectedNodeId && nodes.length > 0) selectedNodeId = nodes[0].id;
       await loadFeedback();
+      // restore knowledge mode from localStorage
+      try {
+        const saved = localStorage.getItem('knowledgeMode');
+        if (saved === 'vector' || saved === 'hybrid') knowledgeMode = saved as any;
+      } catch {}
     } catch (e) {
       toast.error(`${e}`);
     }
@@ -132,9 +140,21 @@
   const loadKnowledge = async () => {
     if (!selectedNodeId) return;
     try {
-      knowledge = await getNodeKnowledge(localStorage.token, caseId, selectedNodeId, { topK: 5 });
+      if (knowledgeMode === 'hybrid') {
+        knowledge = await getNodeKnowledgeHybrid(localStorage.token, caseId, selectedNodeId, { topK: 5 });
+      } else {
+        knowledge = await getNodeKnowledge(localStorage.token, caseId, selectedNodeId, { topK: 5 });
+      }
     } catch (e) {
       toast.error(`${e}`);
+    }
+  };
+
+  const toggleKnowledgeMode = async () => {
+    knowledgeMode = knowledgeMode === 'vector' ? 'hybrid' : 'vector';
+    try { localStorage.setItem('knowledgeMode', knowledgeMode); } catch {}
+    if (selectedNodeId) {
+      await loadKnowledge();
     }
   };
 
@@ -345,7 +365,8 @@
             <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={doRegenerate}>{$i18n.t('Regenerate')}</button>
             <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={doListTasks}>{$i18n.t('List Tasks')}</button>
             <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={doStopTasks}>{$i18n.t('Stop Tasks')}</button>
-            <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={loadKnowledge}>{$i18n.t('Knowledge')}</button>
+            <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={loadKnowledge}>{$i18n.t('Knowledge')} ({knowledgeMode === 'vector' ? 'Vector' : 'Hybrid'})</button>
+            <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={toggleKnowledgeMode}>{$i18n.t('Toggle Mode')}</button>
             <button class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800" on:click={loadCommands}>{$i18n.t('Commands')}</button>
           </div>
 

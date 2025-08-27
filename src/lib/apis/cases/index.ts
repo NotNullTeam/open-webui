@@ -415,6 +415,41 @@ export const getNodeKnowledge = async (
   return res;
 };
 
+// Hybrid knowledge retrieval
+export const getNodeKnowledgeHybrid = async (
+  token: string,
+  caseId: string,
+  nodeId: string,
+  params: { topK?: number; vendor?: string; retrievalWeight?: number } = {}
+) => {
+  const sp = new URLSearchParams();
+  if (params.topK) sp.set('topK', String(params.topK));
+  if (params.vendor) sp.set('vendor', params.vendor);
+  if (params.retrievalWeight !== undefined)
+    sp.set('retrievalWeight', String(params.retrievalWeight));
+
+  const res = await fetch(
+    `${WEBUI_API_BASE_URL}/cases/${caseId}/nodes/${nodeId}/knowledge/hybrid?${sp.toString()}`,
+    {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        authorization: `Bearer ${token}`
+      }
+    }
+  )
+    .then(async (r) => {
+      if (!r.ok) throw await r.json();
+      return r.json();
+    })
+    .catch((err) => {
+      console.error(err);
+      throw err?.detail ?? err;
+    });
+  return res;
+};
+
 export const getNodeCommands = async (
   token: string,
   caseId: string,
